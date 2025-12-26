@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NEET 2027 • Study Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+--bg:#eafff4;
+--card:#ffffff;
+--text:#0f172a;
+--muted:#64748b;
+--accent:#22c55e;
+--danger:#ef4444;
+--soft:#f8fafc;
+}
+*{box-sizing:border-box;font-family:Inter,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+.container{max-width:1200px;margin:auto;padding:30px}
+h1{font-size:2.4rem}
+h2{margin:0 0 10px}
+small{color:var(--muted)}
+
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+.card{
+background:var(--card);
+border-radius:20px;
+padding:20px;
+box-shadow:0 10px 30px rgba(0,0,0,.06)
+}
+
+/* TASKS */
+.task{
+border-left:5px solid var(--accent);
+background:#f0fdf4;
+padding:14px;
+border-radius:14px;
+margin-bottom:12px;
+display:flex;
+justify-content:space-between;
+align-items:center
+}
+.task.high{border-color:var(--danger);background:#fff1f2}
+.task.done{text-decoration:line-through;opacity:.6}
+
+.task span{font-size:.85rem;color:var(--muted)}
+
+.add-btn{
+width:100%;
+border:2px dashed var(--accent);
+padding:10px;
+border-radius:14px;
+background:none;
+font-weight:600;
+color:var(--accent)
+}
+
+/* SUBJECTS */
+.subject{margin-bottom:20px}
+.chapter{
+padding:12px;
+border-radius:14px;
+background:var(--soft);
+margin-bottom:8px;
+display:flex;
+justify-content:space-between;
+cursor:pointer
+}
+.chapter.done{background:#dcfce7}
+.progress{
+height:6px;
+background:#e5e7eb;
+border-radius:10px;
+overflow:hidden;
+margin-top:6px
+}
+.bar{height:100%;background:var(--accent);width:0%}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>👨‍⚕️ Shashwat Rai</h1>
+<small>NEET 2027 • Class 11 PCB • Smart Study System</small>
+
+<div class="grid">
+
+<!-- LEFT -->
+<div>
+
+<!-- YESTERDAY / TODAY TASKS -->
+<div class="card">
+<h2>📅 Daily Study Planner</h2>
+
+<div id="tasks"></div>
+
+<button class="add-btn" onclick="addTask()">+ Add Task</button>
+</div>
+
+<!-- SYLLABUS -->
+<div class="card" style="margin-top:20px">
+<h2>📘 Syllabus Tracker</h2>
+
+<div id="syllabus"></div>
+</div>
+
+</div>
+
+<!-- RIGHT ANALYTICS -->
+<div class="card">
+<h2>📊 Today Overview</h2>
+
+<p><b>Study Time</b> — 4.5h</p>
+<p><b>Questions</b> — 0</p>
+
+<div class="progress"><div class="bar" id="overallBar"></div></div>
+<small id="overallText">0% completed</small>
+
+<hr style="margin:20px 0">
+
+<h3>⚠ Study Tip</h3>
+<small>Add practice + revision for better retention</small>
+</div>
+
+</div>
+</div>
+
+<script>
+/* TASKS */
+let tasks=JSON.parse(localStorage.getItem("tasks"))||[];
+
+function renderTasks(){
+const box=document.getElementById("tasks");
+box.innerHTML="";
+tasks.forEach((t,i)=>{
+const d=document.createElement("div");
+d.className=`task ${t.p} ${t.d?'done':''}`;
+d.innerHTML=`
+<div>
+<b>${t.t}</b><br>
+<span>${t.sub} • ${t.time} min</span>
+</div>
+<input type="checkbox" ${t.d?'checked':''}>
+`;
+d.querySelector("input").onchange=e=>{
+tasks[i].d=e.target.checked;
+saveTasks();
+};
+box.appendChild(d);
+});
+}
+
+function addTask(){
+const t=prompt("Task name?");
+if(!t)return;
+tasks.push({t,sub:"Chemistry",time:60,p:"high",d:false});
+saveTasks();
+}
+
+function saveTasks(){
+localStorage.setItem("tasks",JSON.stringify(tasks));
+renderTasks();
+}
+
+/* SYLLABUS */
+const syllabus={
+Biology:["Living World","Biological Classification","Plant Kingdom","Animal Kingdom","Biomolecules"],
+Physics:["Kinematics","Laws of Motion","WEP","Thermodynamics","Oscillations"],
+Chemistry:["Mole Concept","Atomic Structure","Chemical Bonding","Thermodynamics","Hydrocarbons"]
+};
+
+let prog=JSON.parse(localStorage.getItem("prog"))||{};
+
+function renderSyllabus(){
+const box=document.getElementById("syllabus");
+box.innerHTML="";
+let total=0,done=0;
+
+for(let sub in syllabus){
+const div=document.createElement("div");
+div.className="subject";
+div.innerHTML=`<h3>${sub}</h3>`;
+
+syllabus[sub].forEach(ch=>{
+prog[ch]??=false;
+total++;
+if(prog[ch])done++;
+
+const c=document.createElement("div");
+c.className=`chapter ${prog[ch]?'done':''}`;
+c.innerHTML=`${ch} <input type="checkbox" ${prog[ch]?'checked':''}>`;
+c.querySelector("input").onchange=e=>{
+prog[ch]=e.target.checked;
+saveProg();
+};
+div.appendChild(c);
+});
+box.appendChild(div);
+}
+
+const p=Math.round(done/total*100);
+document.getElementById("overallBar").style.width=p+"%";
+document.getElementById("overallText").textContent=p+"% completed";
+}
+
+function saveProg(){
+localStorage.setItem("prog",JSON.stringify(prog));
+renderSyllabus();
+}
+
+renderTasks();
+renderSyllabus();
+</script>
+
+</body>
+</html>
